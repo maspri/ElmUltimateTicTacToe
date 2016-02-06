@@ -7576,7 +7576,7 @@ Elm.SimpleTTT.make = function (_elm) {
                                      ,_U.list([3,4,5])
                                      ,_U.list([6,7,8])
                                      ,_U.list([0,3,6])
-                                     ,_U.list([1,4,6])
+                                     ,_U.list([1,4,7])
                                      ,_U.list([2,5,8])
                                      ,_U.list([0,4,8])
                                      ,_U.list([6,4,2])]);
@@ -7600,23 +7600,23 @@ Elm.SimpleTTT.make = function (_elm) {
    var SelectStart = {ctor: "SelectStart"};
    var UReset = {ctor: "UReset"};
    var Play = function (a) {    return {ctor: "Play",_0: a};};
-   var getImage = F3(function (address,pos,c) {
+   var getImage = F4(function (address,drawsize,pos,c) {
       return A2($Graphics$Input.clickable,
       A2($Signal.message,address,Play(pos)),
       function () {
          var _p1 = c;
          if (_p1.ctor === "Free") {
-               return A2($Graphics$Element.spacer,100,100);
+               return A2($Graphics$Element.spacer,drawsize,drawsize);
             } else {
                if (_p1._0.ctor === "PlayerX") {
                      return A3($Graphics$Element.image,
-                     100,
-                     100,
+                     drawsize,
+                     drawsize,
                      "images/cross.png");
                   } else {
                      return A3($Graphics$Element.image,
-                     100,
-                     100,
+                     drawsize,
+                     drawsize,
                      "images/circle.png");
                   }
             }
@@ -7624,31 +7624,50 @@ Elm.SimpleTTT.make = function (_elm) {
    });
    var view = F3(function (address,highlight,_p2) {
       var _p3 = _p2;
-      return A2($Graphics$Element.flow,
-      $Graphics$Element.outward,
-      _U.list([highlight ? A3($Graphics$Element.image,
-              300,
-              300,
-              "images/high_field.png") : A3($Graphics$Element.image,
-              300,
-              300,
-              "images/field.png")
-              ,A2($Graphics$Element.flow,
-              $Graphics$Element.down,
-              A2($List.map,
-              function (i) {
-                 return A2($Graphics$Element.flow,
-                 $Graphics$Element.right,
-                 $Array.toList(A2($Array.indexedMap,
-                 F2(function (j,c) {
-                    return A3(getImage,
-                    address,
-                    {ctor: "_Tuple2",_0: _p3.pos,_1: i * 3 + j},
-                    c);
-                 }),
-                 A3($Array.slice,i * 3,i * 3 + 3,_p3.field))));
-              },
-              _U.range(0,2)))]));
+      var _p5 = _p3.drawingSize;
+      var _p4 = _p3.state;
+      switch (_p4.ctor)
+      {case "Ongoing": return A2($Graphics$Element.flow,
+           $Graphics$Element.outward,
+           _U.list([highlight ? A3($Graphics$Element.image,
+                   _p5,
+                   _p5,
+                   "images/high_field.png") : A3($Graphics$Element.image,
+                   _p5,
+                   _p5,
+                   "images/field.png")
+                   ,A2($Graphics$Element.flow,
+                   $Graphics$Element.down,
+                   A2($List.map,
+                   function (i) {
+                      return A2($Graphics$Element.flow,
+                      $Graphics$Element.right,
+                      $Array.toList(A2($Array.indexedMap,
+                      F2(function (j,c) {
+                         return A4(getImage,
+                         address,
+                         _p5 / 3 | 0,
+                         {ctor: "_Tuple2",_0: _p3.pos,_1: i * 3 + j},
+                         c);
+                      }),
+                      A3($Array.slice,i * 3,i * 3 + 3,_p3.field))));
+                   },
+                   _U.range(0,2)))]));
+         case "Won": if (_p4._0.ctor === "PlayerX") {
+                 return A3($Graphics$Element.image,
+                 _p5,
+                 _p5,
+                 "images/cross.png");
+              } else {
+                 return A3($Graphics$Element.image,
+                 _p5,
+                 _p5,
+                 "images/circle.png");
+              }
+         default: return A3($Graphics$Element.image,
+           _p5,
+           _p5,
+           "images/stalemate.png");}
    });
    var PvAI = {ctor: "PvAI"};
    var PvP = {ctor: "PvP"};
@@ -7659,50 +7678,50 @@ Elm.SimpleTTT.make = function (_elm) {
    var Stalemate = {ctor: "Stalemate"};
    var Won = function (a) {    return {ctor: "Won",_0: a};};
    var Free = {ctor: "Free"};
-   var initialModel = function (p) {
+   var initialModel = F2(function (drawsize,p) {
       return {field: A2($Array.repeat,9,Free)
-             ,drawingSize: 300
+             ,drawingSize: drawsize
              ,state: Ongoing
              ,pos: p
              ,numFree: 9};
-   };
+   });
    var Pl = function (a) {    return {ctor: "Pl",_0: a};};
    var PlayerO = {ctor: "PlayerO"};
    var PlayerX = {ctor: "PlayerX"};
    var whowon = F2(function (numFree,field) {
-      var _p4 = {ctor: "_Tuple2"
+      var _p6 = {ctor: "_Tuple2"
                 ,_0: A2(won,PlayerX,field)
                 ,_1: A2(won,PlayerO,field)};
-      _v3_3: do {
-         if (_p4.ctor === "_Tuple2") {
-               if (_p4._0 === true) {
-                     if (_p4._1 === false) {
+      _v4_3: do {
+         if (_p6.ctor === "_Tuple2") {
+               if (_p6._0 === true) {
+                     if (_p6._1 === false) {
                            return Won(PlayerX);
                         } else {
-                           break _v3_3;
+                           break _v4_3;
                         }
                   } else {
-                     if (_p4._1 === true) {
+                     if (_p6._1 === true) {
                            return Won(PlayerO);
                         } else {
                            return _U.eq(numFree,0) ? Stalemate : Ongoing;
                         }
                   }
             } else {
-               break _v3_3;
+               break _v4_3;
             }
       } while (false);
       return _U.crashCase("SimpleTTT",
       {start: {line: 66,column: 24},end: {line: 70,column: 53}},
-      _p4)("should not happen");
+      _p6)("should not happen");
    });
    var update = F2(function (a,model) {
-      var _p6 = a;
-      if (_p6.ctor === "SelectField") {
-            var _p8 = _p6._0;
-            var _p7 = A2($Array.get,_p8,model.field);
-            if (_p7.ctor === "Just" && _p7._0.ctor === "Free") {
-                  var newField = A3($Array.set,_p8,Pl(_p6._1),model.field);
+      var _p8 = a;
+      if (_p8.ctor === "SelectField") {
+            var _p10 = _p8._0;
+            var _p9 = A2($Array.get,_p10,model.field);
+            if (_p9.ctor === "Just" && _p9._0.ctor === "Free") {
+                  var newField = A3($Array.set,_p10,Pl(_p8._1),model.field);
                   return _U.update(model,
                   {field: newField
                   ,state: A2(whowon,model.numFree - 1,newField)
@@ -7711,7 +7730,7 @@ Elm.SimpleTTT.make = function (_elm) {
                   return model;
                }
          } else {
-            return initialModel(model.pos);
+            return A2(initialModel,model.drawingSize,model.pos);
          }
    });
    return _elm.SimpleTTT.values = {_op: _op
@@ -7758,9 +7777,22 @@ Elm.UltimateTTT.make = function (_elm) {
    $Text = Elm.Text.make(_elm);
    var _op = {};
    var drawModel = F2(function (address,model) {
+      var highlighted = function () {
+         var _p0 = model.lastPlay;
+         if (_p0.ctor === "Nothing") {
+               return F2(function (_p2,_p1) {    return true;});
+            } else {
+               return F2(function (x,y) {
+                  return _U.eq(_p0._0,x * 3 + y);
+               });
+            }
+      }();
       return A2($Graphics$Element.flow,
       $Graphics$Element.outward,
-      _U.list([A3($Graphics$Element.image,900,900,"images/field.jpg")
+      _U.list([A3($Graphics$Element.image,
+              model.drawingSize,
+              model.drawingSize,
+              "images/field.png")
               ,A2($Graphics$Element.flow,
               $Graphics$Element.down,
               A2($List.map,
@@ -7769,10 +7801,7 @@ Elm.UltimateTTT.make = function (_elm) {
                  $Graphics$Element.right,
                  $Array.toList(A2($Array.indexedMap,
                  F2(function (j,c) {
-                    return A3($SimpleTTT.view,
-                    address,
-                    _U.eq(model.lastPlay,$Maybe.Just(i * 3 + j)),
-                    c);
+                    return A3($SimpleTTT.view,address,A2(highlighted,i,j),c);
                  }),
                  A3($Array.slice,i * 3,i * 3 + 3,model.board))));
               },
@@ -7780,8 +7809,8 @@ Elm.UltimateTTT.make = function (_elm) {
    });
    var startView = function (address) {
       return A4($Graphics$Element.container,
-      300,
-      300,
+      700,
+      500,
       $Graphics$Element.middle,
       A2($Graphics$Element.flow,
       $Graphics$Element.down,
@@ -7789,9 +7818,9 @@ Elm.UltimateTTT.make = function (_elm) {
               A2($Signal.message,address,$SimpleTTT.SelectStart),
               $Graphics$Element.centered(A2($Text.color,
               $Color.red,
-              A2($Text.height,80,$Text.fromString("Start")))))
+              A2($Text.height,120,$Text.fromString("Start")))))
               ,A2($Graphics$Element.width,
-              180,
+              250,
               A2($Graphics$Input.dropDown,
               function (mode) {
                  return A2($Signal.message,address,$SimpleTTT.Select(mode));
@@ -7803,33 +7832,44 @@ Elm.UltimateTTT.make = function (_elm) {
                        ,_0: "Player vs AI"
                        ,_1: $SimpleTTT.PvAI}])))])));
    };
+   var bigRedText = function (s) {
+      return $Graphics$Element.leftAligned(A2($Text.color,
+      $Color.red,
+      A2($Text.height,80,$Text.fromString(s))));
+   };
    var view = F2(function (address,model) {
-      var _p0 = model.state;
-      switch (_p0.ctor)
+      var _p3 = model.state;
+      switch (_p3.ctor)
       {case "Ongoing": return A2(drawModel,address,model);
          case "Won": return A2($Graphics$Element.flow,
-           $Graphics$Element.down,
+           $Graphics$Element.outward,
            _U.list([A2(drawModel,address,model)
-                   ,A2($Graphics$Element.flow,
-                   $Graphics$Element.right,
-                   _U.list([$Graphics$Element.show("Player: ")
-                           ,$Graphics$Element.show(_p0._0)
-                           ,$Graphics$Element.show(" won.")]))]));
+                   ,A4($Graphics$Element.container,
+                   model.drawingSize,
+                   model.drawingSize,
+                   $Graphics$Element.middle,
+                   bigRedText(A2($Basics._op["++"],
+                   $Basics.toString(_p3._0),
+                   " won.")))]));
          case "Stalemate": return A2($Graphics$Element.flow,
-           $Graphics$Element.down,
+           $Graphics$Element.outward,
            _U.list([A2(drawModel,address,model)
-                   ,$Graphics$Element.show("Stalemate")]));
+                   ,A4($Graphics$Element.container,
+                   model.drawingSize,
+                   model.drawingSize,
+                   $Graphics$Element.middle,
+                   bigRedText("Stalemate"))]));
          default: return startView(address);}
    });
    var fieldClickedMailbox = $Signal.mailbox($SimpleTTT.UReset);
    var won = F2(function (player,model) {
       return A2($List.any,
       $List.all(function (i) {
-         var _p1 = A2($Array.get,i,model.board);
-         if (_p1.ctor === "Just") {
-               var _p2 = _p1._0.state;
-               switch (_p2.ctor)
-               {case "Won": return _U.eq(_p2._0,player);
+         var _p4 = A2($Array.get,i,model.board);
+         if (_p4.ctor === "Just") {
+               var _p5 = _p4._0.state;
+               switch (_p5.ctor)
+               {case "Won": return _U.eq(_p5._0,player);
                   case "Ongoing": return false;
                   default: return false;}
             } else {
@@ -7839,8 +7879,8 @@ Elm.UltimateTTT.make = function (_elm) {
       $SimpleTTT.winningCombinations);
    });
    var otherPlayer = function (p) {
-      var _p3 = p;
-      if (_p3.ctor === "PlayerX") {
+      var _p6 = p;
+      if (_p6.ctor === "PlayerX") {
             return $SimpleTTT.PlayerO;
          } else {
             return $SimpleTTT.PlayerX;
@@ -7855,14 +7895,16 @@ Elm.UltimateTTT.make = function (_elm) {
              ,lastPlay: f};
    });
    var NotStarted = {ctor: "NotStarted"};
-   var init = {board: A2($Array.initialize,
-              9,
-              $SimpleTTT.initialModel)
-              ,drawingSize: 300
-              ,state: NotStarted
-              ,mode: $SimpleTTT.PvP
-              ,currentPlayer: $SimpleTTT.PlayerX
-              ,lastPlay: $Maybe.Nothing};
+   var init = function (drawSize) {
+      return {board: A2($Array.initialize,
+             9,
+             $SimpleTTT.initialModel(drawSize / 3 | 0))
+             ,drawingSize: drawSize
+             ,state: NotStarted
+             ,mode: $SimpleTTT.PvP
+             ,currentPlayer: $SimpleTTT.PlayerX
+             ,lastPlay: $Maybe.Nothing};
+   };
    var Ongoing = {ctor: "Ongoing"};
    var Stalemate = {ctor: "Stalemate"};
    var Won = function (a) {    return {ctor: "Won",_0: a};};
@@ -7876,69 +7918,65 @@ Elm.UltimateTTT.make = function (_elm) {
       $Array.toList(model.board)) ? Ongoing : Stalemate;
    });
    var update = F2(function (a,model) {
-      var _p4 = a;
-      switch (_p4.ctor)
-      {case "Play": var _p14 = _p4._0._1;
-           var _p13 = _p4._0._0;
-           var _p5 = A2($Array.get,_p13,model.board);
-           if (_p5.ctor === "Just") {
-                 var _p11 = _p5._0;
-                 var newLastPlay = function () {
-                    var _p6 = A2($Array.get,_p14,model.board);
-                    if (_p6.ctor === "Just") {
-                          var _p7 = _p6._0.state;
-                          switch (_p7.ctor)
-                          {case "Ongoing": return $Maybe.Just(_p14);
-                             case "Stalemate": return $Maybe.Nothing;
-                             default: return $Maybe.Nothing;}
-                       } else {
-                          return _U.crashCase("UltimateTTT",
-                          {start: {line: 91,column: 39},end: {line: 96,column: 64}},
-                          _p6)("should not happen3");
-                       }
-                 }();
-                 var newBoard = A3($Array.set,
-                 _p13,
-                 A2($SimpleTTT.update,
-                 A2($SimpleTTT.SelectField,_p14,model.currentPlayer),
-                 _p11),
-                 model.board);
-                 var newModel = _U.update(model,
-                 {board: newBoard
-                 ,currentPlayer: otherPlayer(model.currentPlayer)
-                 ,lastPlay: newLastPlay
-                 ,state: A2(won2,model.currentPlayer,model)});
+      var _p7 = a;
+      switch (_p7.ctor)
+      {case "Play": var _p17 = _p7._0._1;
+           var _p16 = _p7._0._0;
+           var _p8 = A2($Array.get,_p16,model.board);
+           if (_p8.ctor === "Just") {
+                 var _p14 = _p8._0;
                  var valid = function () {
-                    var _p9 = A2($Array.get,_p14,_p11.field);
+                    var _p9 = A2($Array.get,_p17,_p14.field);
                     if (_p9.ctor === "Just" && _p9._0.ctor === "Free") {
                           return true;
                        } else {
                           return false;
                        }
-                 }() && (_U.eq(_p11.state,$SimpleTTT.Ongoing) && (function () {
+                 }() && (_U.eq(_p14.state,$SimpleTTT.Ongoing) && (function () {
                     var _p10 = model.lastPlay;
                     if (_p10.ctor === "Just") {
-                          return _U.eq(_p10._0,_p13);
+                          return _U.eq(_p10._0,_p16);
                        } else {
                           return true;
                        }
                  }() && _U.eq(model.state,Ongoing)));
+                 var newField = A2($SimpleTTT.update,
+                 A2($SimpleTTT.SelectField,_p17,model.currentPlayer),
+                 _p14);
+                 var newBoard = A3($Array.set,_p16,newField,model.board);
+                 var newLastPlay = function () {
+                    var _p11 = A2($Array.get,_p17,newBoard);
+                    if (_p11.ctor === "Just") {
+                          var _p12 = _p11._0.state;
+                          switch (_p12.ctor)
+                          {case "Ongoing": return $Maybe.Just(_p17);
+                             case "Stalemate": return $Maybe.Nothing;
+                             default: return $Maybe.Nothing;}
+                       } else {
+                          return _U.crashCase("UltimateTTT",
+                          {start: {line: 75,column: 39},end: {line: 80,column: 64}},
+                          _p11)("should not happen3");
+                       }
+                 }();
+                 var newModel = _U.update(model,
+                 {board: newBoard
+                 ,currentPlayer: otherPlayer(model.currentPlayer)
+                 ,lastPlay: newLastPlay});
+                 var newState = A2(won2,model.currentPlayer,newModel);
                  return A2($Debug.watch,"valid",valid) ? _U.update(newModel,
-                 {state: A2($Debug.watch,
-                 "GameState",
-                 A2(won2,model.currentPlayer,model))}) : model;
+                 {state: newState}) : model;
               } else {
                  return _U.crashCase("UltimateTTT",
-                 {start: {line: 77,column: 13},end: {line: 105,column: 48}},
-                 _p5)("cannot happen");
+                 {start: {line: 68,column: 13},end: {line: 101,column: 48}},
+                 _p8)("cannot happen");
               }
-         case "UReset": return init;
+         case "UReset": return init(model.drawingSize);
          case "SelectStart": return _U.update(model,{state: Ongoing});
-         default: return _U.update(model,{mode: _p4._0});}
+         default: return _U.update(model,{mode: _p7._0});}
    });
    var main = A2($Signal.map,
    view(fieldClickedMailbox.address),
-   A3($Signal.foldp,update,init,fieldClickedMailbox.signal));
+   A3($Signal.foldp,update,init(720),fieldClickedMailbox.signal));
    return _elm.UltimateTTT.values = {_op: _op
                                     ,Won: Won
                                     ,Stalemate: Stalemate
@@ -7951,6 +7989,7 @@ Elm.UltimateTTT.make = function (_elm) {
                                     ,update: update
                                     ,fieldClickedMailbox: fieldClickedMailbox
                                     ,init: init
+                                    ,bigRedText: bigRedText
                                     ,view: view
                                     ,startView: startView
                                     ,drawModel: drawModel
