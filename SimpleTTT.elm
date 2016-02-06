@@ -55,7 +55,7 @@ type Action
 
 
 winningCombinations : List (List Int)
-winningCombinations = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,6],[2,5,8],[0,4,8],[6,4,2]]
+winningCombinations = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[6,4,2]]
 
 won : Player -> Field -> Bool
 won player field = List.any (List.all (\i -> case (get i field) of
@@ -83,7 +83,7 @@ update a model =
                 _ ->  model
 
         Reset ->
-            initialModel model.pos
+            initialModel model.drawingSize model.pos
 
 
 
@@ -92,28 +92,31 @@ update a model =
 
 view : Signal.Address UAction -> Bool -> Model -> Element
 view address highlight { field, drawingSize, state, pos } =
-    flow
-        outward
-        [ if highlight then image 300 300 "images/high_field.png" else image 300 300 "images/field.png"
-        , flow down <| List.map (\i -> flow right <| toList <| indexedMap (\j c -> getImage address ( pos, i * 3 + j ) c) (slice (i * 3) (i * 3 + 3) field)) [0..2]
-          --, flow down <| toList <| indexedMap (\i row -> flow right (toList <| indexedMap (\j elem -> getImage address ( i, j ) elem) row)) field
-        ]
+  case state of
+    Ongoing ->
+        flow outward
+          [ if highlight then image drawingSize drawingSize "images/high_field.png" else image drawingSize drawingSize "images/field.png"
+          , flow down <| List.map (\i -> flow right <| toList <| indexedMap (\j c -> getImage address (drawingSize//3) ( pos, i * 3 + j ) c) (slice (i * 3) (i * 3 + 3) field)) [0..2]
+          ]
+    Won PlayerX -> image drawingSize drawingSize "images/cross.png"
+    Won PlayerO -> image drawingSize drawingSize "images/circle.png"
+    Stalemate -> image drawingSize drawingSize "images/stalemate.png"
 
 
-getImage : Signal.Address UAction -> ( Int, Int ) -> Content -> Element
-getImage address pos c =
+getImage : Signal.Address UAction -> Int -> ( Int, Int ) -> Content -> Element
+getImage address drawsize pos c =
     clickable (message address (Play pos))
         <| case c of
             Free ->
-                spacer 100 100
+                spacer drawsize drawsize
 
             Pl PlayerX ->
-                image 100 100 "images/cross.png"
+                image drawsize drawsize "images/cross.png"
 
             Pl PlayerO ->
-                image 100 100 "images/circle.png"
+                image drawsize drawsize "images/circle.png"
 
 
-initialModel : Int -> Model
-initialModel p =
-    { field = repeat 9 Free, drawingSize = 300, state = Ongoing, pos = p ,numFree = 9}
+initialModel : Int -> Int -> Model
+initialModel drawsize p =
+    { field = repeat 9 Free, drawingSize = drawsize, state = Ongoing, pos = p ,numFree = 9}
