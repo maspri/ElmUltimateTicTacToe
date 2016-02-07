@@ -71,19 +71,19 @@ whowon numFree field = case (won PlayerX field,won PlayerO field) of
 
 
 update : Action -> Model -> Model
-update a model =
+update a ({field,numFree,drawingSize,pos} as model) =
     case a of
         SelectField x player ->
-            case (get x model.field) of
-                Just Free -> let newField =  set x (Pl player) model.field
+            case (get x field) of
+                Just Free -> let newField =  set x (Pl player) field
                              in
-                             { model | field = newField , state = whowon (model.numFree-1) newField, numFree = model.numFree-1}
+                             { model | field = newField , state = whowon (numFree-1) newField, numFree = numFree-1}
 
 
                 _ ->  model
 
         Reset ->
-            initialModel model.drawingSize model.pos
+            initialModel drawingSize pos
 
 
 
