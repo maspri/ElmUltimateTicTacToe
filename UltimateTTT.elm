@@ -116,7 +116,7 @@ update a ({ board, drawingSize, state, mode, currentPlayer, lastPlay } as model)
 
                         valid =
                             (case (get y field.field) of
-                                Just SimpleTTT.Free ->
+                                Just (SimpleTTT.Free) ->
                                     True
 
                                 _ ->
@@ -126,7 +126,7 @@ update a ({ board, drawingSize, state, mode, currentPlayer, lastPlay } as model)
                                 && (Maybe.withDefault True (Maybe.map ((==) x) lastPlay))
                                 && (state == Ongoing)
                     in
-                        if Debug.watch "valid" valid then
+                        if valid then
                             { newModel | state = newState }
                         else
                             model
